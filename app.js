@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // grad = MW * 0.052 (psi/ft); HP = MW * 0.052 * TVD; SG = MW / 8.33 [file:1]
 function calcPressure() {
   const mw = parseFloat(document.getElementById('mw_ppg').value) || 0;
-  const tvd = parseFloat(document.getElementById('tvd_ft').value) || 0;
+  const tvd = parseFloat(document.getElementById('tvd_m').value) || 0;
 
   const grad = mw * 0.052;
   const hp = mw * 0.052 * tvd;
@@ -32,23 +32,19 @@ function calcPressure() {
 
 // ----- Hydraulics (annular velocity) -----
 // AV(ft/min) = 24.5 * Q / (Dh^2 - Dp^2) [file:1]
-function calcHydraulics() {
-  const q = parseFloat(document.getElementById('q_gpm').value) || 0;
-  const dh = parseFloat(document.getElementById('dh_in').value) || 0;
-  const dp = parseFloat(document.getElementById('dp_in').value) || 0;
+function calcPressure() {
+  const mw = parseFloat(document.getElementById('mw_ppg').value) || 0;
+  const tvd_m = parseFloat(document.getElementById('tvd_ft').value) || 0; // now metres
 
-  const denom = dh * dh - dp * dp;
-  let avFtMin = 0;
-  if (denom > 0) {
-    avFtMin = 24.5 * q / denom;
-  }
+  const tvd_ft = tvd_m * 3.281;                 // convert m → ft
+  const grad = mw * 0.052;                      // psi/ft [file:1]
+  const hp = mw * 0.052 * tvd_ft;               // psi [file:1]
+  const sg = mw / 8.33;                         // SG [file:1]
 
-  const avFtSec = avFtMin / 60;
-
-  document.getElementById('av_ftmin_out').textContent = avFtMin.toFixed(1);
-  document.getElementById('av_ftsec_out').textContent = avFtSec.toFixed(2);
+  document.getElementById('grad_out').textContent = grad.toFixed(4);
+  document.getElementById('hp_out').textContent = hp.toFixed(1);
+  document.getElementById('sg_out').textContent = sg.toFixed(3);
 }
-
 // ----- Slug calculations -----
 // From Lapeyrouse: HP = MW * 0.052 * ft_dry; Δgrad = (SlugMW - MudMW)*0.052;
 // L_slug = HP / Δgrad; Vol_slug = L_slug * DP_cap [file:1]
