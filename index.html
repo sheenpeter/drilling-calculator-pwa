@@ -22,115 +22,74 @@
   </header>
 
   <main>
-    <!-- Simple tab buttons -->
+    <!-- Tab buttons -->
     <div class="tabs">
-      <button class="tab-button active" data-target="#pressure">Pressure</button>
+      <button class="tab-button active" data-target="#inputs">Inputs</button>
+      <button class="tab-button" data-target="#pressure">Pressure</button>
       <button class="tab-button" data-target="#hydraulics">Hydraulics</button>
-      <button class="tab-button" data-target="#slug">Slug</button>
       <button class="tab-button" data-target="#volumes">Volumes</button>
     </div>
 
-    <!-- Pressure calculator -->
-    <section id="pressure" class="tab-content active">
-      <h2>Pressure</h2>
+    <!-- 1) INPUTS TAB -->
+    <section id="inputs" class="tab-content active">
+      <h2>Well inputs (all lengths in m)</h2>
       <div class="card">
         <label>
-          Mud weight (ppg)
-          <input id="mw_ppg" type="number" step="0.01" />
+          Current well depth (MD, m)
+          <input id="current_well_depth" type="number" step="0.1" />
         </label>
         <label>
-          TVD (m)
-          <input id="tvd_m" type="number" step="0.1" />
+          Sea bed depth (m)
+          <input id="seabed_depth" type="number" step="0.1" />
         </label>
-        <button onclick="calcPressure()">Calculate</button>
+        <label>
+          Datum elevation (m)
+          <input id="datum_elevation" type="number" step="0.1" />
+        </label>
+        <label>
+          Last casing shoe depth (m)
+          <input id="last_casing_depth" type="number" step="0.1" />
+        </label>
+        <label>
+          Current TVD (m)
+          <input id="well_tvd" type="number" step="0.1" />
+        </label>
 
-        <div class="results">
-          <div>Pressure gradient (psi/ft): <span id="grad_out">0.0000</span></div>
-          <div>Hydrostatic pressure (psi): <span id="hp_out">0.0</span></div>
-          <div>Specific gravity: <span id="sg_out">0.000</span></div>
-        </div>
+        <h3>Pipes in hole (length m, diameters in)</h3>
+        <div id="pipe-rows"></div>
+        <button type="button" onclick="addPipeRow()">Add pipe</button>
+
+        <button type="button" style="margin-top:12px" onclick="saveInputs()">
+          Save inputs
+        </button>
       </div>
     </section>
 
-    <!-- Hydraulics (annular velocity) -->
+    <!-- 2) PRESSURE RESULTS TAB -->
+    <section id="pressure" class="tab-content">
+      <h2>Pressure results</h2>
+      <div class="card">
+        <div>Current well depth (m): <span id="out_current_well_depth">0.0</span></div>
+        <div>Current TVD (m): <span id="out_well_tvd">0.0</span></div>
+        <!-- later: hydrostatic pressure, gradients etc. from Lapeyrouse formulas [file:1] -->
+      </div>
+    </section>
+
+    <!-- 3) HYDRAULICS RESULTS TAB -->
     <section id="hydraulics" class="tab-content">
-      <h2>Hydraulics</h2>
+      <h2>Hydraulics results</h2>
       <div class="card">
-        <label>
-          Flow rate Q (gpm)
-          <input id="q_gpm" type="number" step="1" />
-        </label>
-        <label>
-          Dh (in) – hole / casing ID
-          <input id="dh_in" type="number" step="0.01" />
-        </label>
-        <label>
-          Dp (in) – pipe OD
-          <input id="dp_in" type="number" step="0.01" />
-        </label>
-        <button onclick="calcHydraulics()">Calculate</button>
-
-        <div class="results">
-          <div>AV (ft/min): <span id="av_ftmin_out">0.0</span></div>
-          <div>AV (ft/s): <span id="av_ftsec_out">0.00</span></div>
-        </div>
+        <div>Total drillstring length (m): <span id="out_total_pipe_len">0.0</span></div>
+        <!-- later: AV, ECD etc. derived from pipe data and depths [file:1] -->
       </div>
     </section>
 
-    <!-- Slug calculator -->
-    <section id="slug" class="tab-content">
-      <h2>Slug</h2>
-      <div class="card">
-        <label>
-          Mud weight (ppg)
-          <input id="slug_mud_ppg" type="number" step="0.01" />
-        </label>
-        <label>
-          Slug weight (ppg)
-          <input id="slug_ppg" type="number" step="0.01" />
-        </label>
-        <label>
-          Desired dry pipe (m)
-          <input id="dry_pipe_m" type="number" step="0.1" />
-        </label>
-        <label>
-          DP capacity (bbl/ft)
-          <input id="dp_cap_bblft" type="number" step="0.00001" />
-        </label>
-        <button onclick="calcSlug()">Calculate</button>
-
-        <div class="results">
-          <div>HP required (psi): <span id="slug_hp_out">0.0</span></div>
-          <div>Δ gradient (psi/ft): <span id="slug_dg_out">0.0000</span></div>
-          <div>Slug length (ft): <span id="slug_len_out">0</span></div>
-          <div>Slug volume (bbl): <span id="slug_vol_out">0.00</span></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Volumes & strokes -->
+    <!-- 4) VOLUMES RESULTS TAB -->
     <section id="volumes" class="tab-content">
-      <h2>Volumes</h2>
+      <h2>Volume / capacity results</h2>
       <div class="card">
-        <label>
-          DP ID (in)
-          <input id="dp_id_in" type="number" step="0.01" />
-        </label>
-        <label>
-          DP length (ft)
-          <input id="dp_len_ft" type="number" step="1" />
-        </label>
-        <label>
-          Pump output (bbl/stk)
-          <input id="po_bbl_stk" type="number" step="0.0001" />
-        </label>
-        <button onclick="calcVolumes()">Calculate</button>
-
-        <div class="results">
-          <div>DP capacity (bbl/ft): <span id="dp_cap_out">0.00000</span></div>
-          <div>DP volume (bbl): <span id="dp_vol_out">0.00</span></div>
-          <div>Surface-to-bit strokes: <span id="surf_bit_stk_out">0</span></div>
-        </div>
+        <div>Number of pipe sections: <span id="out_pipe_count">0</span></div>
+        <!-- later: capacities and volumes using capacity formulas (ID² / 1029.4 etc.) [file:1] -->
       </div>
     </section>
   </main>
